@@ -6,6 +6,7 @@ from pydantic import HttpUrl
 from schemas.request import PredictionRequest, PredictionResponse
 from utils.logger import setup_logger
 from agent.agent import process_query
+from agent.model import MODEL
 # Initialize
 app = FastAPI()
 logger = None
@@ -70,7 +71,7 @@ async def predict(body: PredictionRequest):
         response = PredictionResponse(
             id=body.id,
             answer=answer,
-            reasoning=reasoning,
+            reasoning=f"{MODEL}: {reasoning}",
             sources=sources,
         )
         await logger.info(f"Successfully processed request {body.id}")

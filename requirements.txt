@@ -3,3 +3,8 @@ aiologger[aiofiles]
 pip-chill
 uvicorn
 gunicorn
+langchain
+langchain-community
+langchain-core
+langchain-openai
+wikipedia

@@ -1,11 +1,11 @@
 import time
 from typing import List
-
+import json
 from fastapi import FastAPI, HTTPException, Request, Response
 from pydantic import HttpUrl
 from schemas.request import PredictionRequest, PredictionResponse
 from utils.logger import setup_logger
-
+from agent.agent import process_query
 # Initialize
 app = FastAPI()
 logger = None
@@ -48,22 +48,29 @@ async def log_requests(request: Request, call_next):
         media_type=response.media_type,
     )
 
-
+def call_model(input_question):
+    logger.info(f"Processing question {input_question}")
+    res = process_query(input_question, 1)
+    logger.info(f"Got res {input_question}")
+    output = json.loads(res)
+    logger.info(f"Got output {output}")
+    return output['answer'], output['reasoning'], output['sources']
 @app.post("/api/request", response_model=PredictionResponse)
 async def predict(body: PredictionRequest):
     try:
         await logger.info(f"Processing prediction request with id: {body.id}")
         # Здесь будет вызов вашей модели
-        answer = 1  # Замените на реальный вызов модели
-        sources: List[HttpUrl] = [
-            HttpUrl("https://itmo.ru/ru/"),
-            HttpUrl("https://abit.itmo.ru/"),
-        ]
+        answer, reasoning, sources = call_model(body.query)
+        # answer = 1  # Замените на реальный вызов модели
+        # sources: List[HttpUrl] = [
+        #     HttpUrl("https://itmo.ru/ru/"),
+        #     HttpUrl("https://abit.itmo.ru/"),
+        # ]
 
         response = PredictionResponse(
             id=body.id,
             answer=answer,
-            reasoning="Из информации на сайте",
+            reasoning=reasoning,
             sources=sources,
         )
         await logger.info(f"Successfully processed request {body.id}")
